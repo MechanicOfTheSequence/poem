@@ -1,0 +1,13 @@
+
+
+class home extends Panel
+	template: """
+	<div>this is the home page</div>
+	"""
+
+class RandomExample extends Poem
+	id: \metaverse
+	version: [0,1,0]
+	template: """
+	<div>META VERSE TEST</div>
+	"""

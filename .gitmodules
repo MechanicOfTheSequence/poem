@@ -1,0 +1,27 @@
+[submodule "support/less-960"]
+	path = support/less-960
+	url = git://github.com/DavidTurner/960-LESS.git
+[submodule "support/gitDav"]
+	path = support/gitDav
+	url = git://github.com/jpallen/gitDav.git
+[submodule "support/apf"]
+	path = support/apf
+	url = https://github.com/ajaxorg/apf.git
+[submodule "support/ace"]
+	path = support/ace
+	url = https://github.com/kennyb/ace.git
+[submodule "support/nbl"]
+	path = support/nbl
+	url = https://github.com/berklee/nbl.git
+[submodule "support/smoothie"]
+	path = support/smoothie
+	url = git://github.com/joewalnes/smoothie.git
+[submodule "support/jsl"]
+	path = support/jsl
+	url = git://github.com/christian-oudard/jsl.git
+[submodule "support/raphel"]
+	path = support/raphel
+	url = git://github.com/DmitryBaranovskiy/raphael.git
+[submodule "support/brain"]
+	path = support/brain
+	url = git://github.com/harthur/brain.git
