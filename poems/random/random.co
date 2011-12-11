@@ -7,7 +7,7 @@ class home extends Panel
 	"""
 
 class RandomExample extends Poem
-	id: \example
+	id: \random
 	version: [0,1,0]
 	template: """
 	<div>META VERSE TEST</div>
