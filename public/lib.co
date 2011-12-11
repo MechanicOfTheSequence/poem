@@ -1,0 +1,390 @@
+
+
+# From http://baagoe.com/en/RandomMusings/javascript/
+Mash = `function() {
+  var n = 0xefc8249d;
+
+  var mash = function(data) {
+    data = data.toString();
+    for (var i = 0; i < data.length; i++) {
+      n += data.charCodeAt(i);
+      var h = 0.02519603282416938 * n;
+      n = h >>> 0;
+      h -= n;
+      h *= n;
+      n = h >>> 0;
+      h -= n;
+      n += h * 0x100000000; // 2^32
+    }
+    return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+  };
+
+  mash.version = 'Mash 0.9';
+  return mash;
+}`
+
+Kybos = `function() {
+  return (function(args) {
+    var s0 = 0;
+    var s1 = 0;
+    var s2 = 0;
+    var c = 1;
+    var s = [];
+    var k = 0;
+
+    var mash = Mash();
+    var s0 = mash(' ');
+    var s1 = mash(' ');
+    var s2 = mash(' ');
+    for (var j = 0; j < 8; j++) {
+      s[j] = mash(' ');
+    }
+
+    if (args.length == 0) {
+      args = [+new Date];
+    }
+    for (var i = 0; i < args.length; i++) {
+      s0 -= mash(args[i]);
+      if (s0 < 0) {
+        s0 += 1;
+      }
+      s1 -= mash(args[i]);
+      if (s1 < 0) {
+        s1 += 1;
+      }
+      s2 -= mash(args[i]);
+      if (s2 < 0) {
+        s2 += 1;
+      }
+      for (var j = 0; j < 8; j++) {
+        s[j] -= mash(args[i]);
+        if (s[j] < 0) {
+          s[j] += 1;
+        }
+      }
+    }
+
+    var random = function() {
+      var a = 2091639;
+      k = s[k] * 8 | 0;
+      var r = s[k];
+      var t = a * s0 + c * 2.3283064365386963e-10; // 2^-32
+      s0 = s1;
+      s1 = s2;
+      s2 = t - (c = t | 0);
+      s[k] -= s2;
+      if (s[k] < 0) {
+        s[k] += 1;
+      }
+      return r;
+    };
+    random.uint32 = function() {
+      return random() * 0x100000000; // 2^32
+    };
+    random.fract53 = function() {
+      return random() +
+        (random() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+    };
+    random.addNoise = function() {
+      for (var i = arguments.length - 1; i >= 0; i--) {
+        for (j = 0; j < 8; j++) {
+          s[j] -= mash(arguments[i]);
+          if (s[j] < 0) {
+            s[j] += 1;
+          }
+        }
+      }
+    };
+    random.version = 'Kybos 0.9';
+    random.args = args;
+    return random;
+  } (Array.prototype.slice.call(arguments)));
+}`
+
+#TODO: mix this with the coco library to make sure that I'm not repeating library functions
+#TODO: expand the coco library to define library functions, so that when they're used they're automatically generated
+#TODO: add to coco the option to pass in a list of already included library functions
+#!!!!! - obviously, I should make these a property of the poem class!!
+
+Mixin = `function(target, source) {
+	if(typeof source === "object") {
+		for(var key in source) {
+			if(source.hasOwnProperty(key)){
+				target[key] = source[key];
+			}
+		}
+	}
+	
+	return target;
+}`
+
+
+class Element
+	(@el) ->
+		console.log 'element instantiated:', @el
+	
+	text: (text) ->
+		if typeof poem.lang is not \object
+			poem.lang = {}
+			console.warn 'your poem does not have a language defined'
+			
+		t = poem.lang[text]
+		if typeof t is \function then t.apply this, Array.prototype.slice.call(arguments, 2)
+		if typeof t is \undefined
+			t = "text '#{text}' is not defined"
+		
+		@innerHTML = t
+		
+class $
+	return (el) ->
+		if typeof el is 'string'
+			if el.charAt(0) is '!'
+				console.error 'TODO: not yet implemented'
+			else
+				el = document.getElementById el
+		el.$ = new Element el
+		el
+	(@@0)
+
+
+poem = {lang: {hello: "howdy"}}
+gL = `function(target, text) {
+	if(typeof poem.L !== 'object') {
+		poem.L = {}
+		console.warn("your poem does not have a language defined");
+	}
+	
+	var t = poem.lang[text];
+	if(typeof t === 'function') {
+		t = t.apply(this, Array.prototype.slice.call(arguments, 2));
+	}
+	
+	if(typeof t === 'undefined') {
+		t = "text '"+text+"' is not defined"
+		console.warn(t);
+	}
+	
+	target.innerHTML = t;
+}`
+
+
+aC = `function(e, value) {
+	if(typeof value !== 'undefined' && value !== null) {
+		if(value.constructor == Array) {
+			for(var i = 0, len = value.length; i < len; i++) {
+				aC(e, value[i]);
+			}
+		} else if(typeof value !== "object") {
+			e.appendChild(document.createTextNode(value));
+		} else {
+			e.appendChild(typeof value._element === "object" ? value._element : value);
+		}
+	}
+}`
+
+cE = `function(type, opts) {
+	var	e = document.createElement(type),
+		len = arguments.length,
+		field, value;
+	
+	type = type === 1 ? "DIV" :
+		type === 2 ? "SPAN" :
+		type === 3 ? "TR" :
+		type === 4 ? "TD" :
+		type === 5 ? "P" :
+		type === 6 ? "A" :
+		type === 7 ? "FORM" :
+		type === 8 ? "UL" :
+		type === 9 ? "LI" :
+		type === 10 ? "TABLE" :
+		type === 11 ? "TBODY" :
+		type === 12 ? "H1" :
+		type === 13 ? "H2" :
+		type;
+	
+	if(opts) {
+		if(opts.hide) {
+			e.style.display = 'none';
+		}
+		
+		for(field in opts) {
+			value = opts[field];
+			
+			if(value !== '') {
+				switch(field) {
+				case 'html':
+					e.innerHTML = value;
+					break;
+				//case 'text':
+				//case 'T':
+				//	gL(e, value);
+				//	break;
+				case 'style':
+					if(typeof value === 'string') {
+						e.style.cssText = value;
+						console.warn("you are setting the style by text... this is a bit slower usually");
+					} else {
+						Mixin(e.style, value)
+					}
+					break;
+				case 'e': break;
+				case 'c':
+					e.className = value;
+					break;
+				case 'h':
+					e.style.height = value;
+					break;
+				case 'w':
+					e.style.width = value;
+					break;
+				case 't_px':
+					e.style.top = value;
+					break;
+				case 'l_px':
+					e.style.left = value;
+					break;
+				case 'display':
+					e.style.display = value || 'none';
+					break;
+				case 'cursor':
+					e.style.cursor = value;
+					break;
+				case 'position':
+					e.style.position = value;
+					break;
+				case 'f':
+					e.htmlFor = value;
+					break;
+				default:
+					e[field] = value;
+				}
+			}
+		}
+	}
+	
+	for(field = 2; field < len; field++) {
+		value = arguments[field];
+		if(typeof value !== 'undefined') {
+			aC(e, value);
+		}
+	}
+	
+	return e;
+}`
+
+class RandomData
+	rand: null
+	ds: []
+	iterations: 10000
+	segments: 256
+	segments_sec: 64
+	(opts = {}) ->
+		#default vals (can be overridden with opts)
+		@rand = new Kybos!
+		
+		#TODO: this is the faster/easier way to do this, but I would have to look at the instructions to find it, and sometimes it takes longer to look it up
+		# this reminds me as well to create a list of syntax improvements which will make my typing life easier...
+		# this also reminds me of the sequences of the future language. start by making the syntax a dictionary lookup
+		# another interesting aspect of this is the editor. knowing the forward syntax and the backward syntax, it would be
+		# possible to alert the programmer of a faster expression, teaching the programmer as she programs.
+		@ <<<< opts
+		
+		
+	start: (update) ->
+		@stop!
+		@i = setInterval ~>
+			@update!
+			if typeof update is \function then update.call arguments
+		, (1000 / @segments_sec)
+		
+	stop: ->
+		if @i then clearInterval @i
+	
+	update: ->
+		now = new Date!.getTime!
+		mean = 0
+		total = 0
+		for i from 0 to @iterations
+			total += @rand.fract53!
+		mean = ((total / @iterations * 2) - 1) * 100
+		@ds.unshift mean
+		while @ds.length > @segments then @ds.pop!
+	
+	avg: (start = 0, end = Infinity, skip = 1) ->
+		if !isFinite(end) then end = @ds.length
+		total = 0
+		
+		sample_avg = 0
+		#console.log "avg", end
+		for i from 0 til end by skip
+			if i >= @ds.length then break
+			v = @ds[i]
+			if i is not isFinite(v) then sample_avg += v
+			total++
+		sample_avg / total || 0
+
+# groups of 8 random number generators
+
+class Osc
+	(@graph) ->
+		@ds = new TimeSeries!
+		@i = if isFinite(Osc.i) then ++Osc.i else Osc.i = 0
+		console.log Osc.i, @i
+	
+	start: (opts ={}) ->
+		console.log "osc.start", @i, @ds, opts
+		@graph.graph.addTimeSeries @ds, opts
+		
+	stop: ->
+		@graph.graph.removeTimeSeries @ds
+		
+	append: (n) ->
+		#console.log "append", @i, n
+		@ds.append new Date!.getTime!, n
+
+class Graph
+	canvas: null
+	graph: null
+	
+	(opts = {}) ->
+		@ <<<< opts
+		
+		# create a canvas
+		if typeof @canvas is 'undefined' then @canvas = cE \canvas
+		@graph = new SmoothieChart {
+			minValue: -1
+			maxValue: 1
+			millisPerPixel: 20
+			grid: { strokeStyle: '#555555', lineWidth: 1, millisPerLine: 1000, verticalSections: 4 }
+		}
+		
+		@graph.streamTo @canvas
+
+class OscAvg
+	(@graph, @num = 7, @size = 2) ->
+		@osc = []
+		#for i from 0 til @num
+		#	@osc.push new Osc @graph
+		@rand = new RandomData
+		@rand.start ~>
+			#console.log "start func", @num
+			s = @rand.segments
+			for i from 0 til @num
+				if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
+				#console.log "osc", i, @osc[i]
+				@osc[i].append @rand.avg(0, s)
+				s /= @size
+				
+	start: (color = '255,0,0') ->
+		console.log "start", @num
+		for i from 0 til @num
+			if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
+			@osc[i].start { strokeStyle: "rgba(255,0,0,#{(i+1)/@num})", lineWidth: 2 }
+			#@osc[i].start { strokeStyle: "rgba(#{128+Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},1)", lineWidth: 2 }
+LIB = {
+	init: (e) ->
+		graph = new Graph canvas: $ 'chart'
+		osc = new OscAvg graph
+		console.log osc, osc.start
+		osc.start!
+}

@@ -1,0 +1,8 @@
+meta-program poem server
+
+git checkout git://github.com/MechanicOfTheSequence/poem.git
+cd poem
+npm update
+coco index.co
+
+(this will be improved in the future)
