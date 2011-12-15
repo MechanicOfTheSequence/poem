@@ -44,7 +44,7 @@ installError = (cb) ->
 			console.log 'npm installed: ', installed
 		if typeof cb is 'function' then cb(err, installed)
 	fn
-	
+
 
 # create dirs
 # load npm modules
@@ -92,43 +92,35 @@ String::replace_all = (f, r) ->
 		str = str.replace f, r
 	str
 
+class Directory
+	(path, callback, opts = {}) ~>
+		Fs.readdir path, (err, dir) ->
+			if err
+				if err.code is 'ENOENT'
+					Builder.mkdirs path, 0, (err) ->
+						if err then throw err
+						if typeof callback is \function then callback dir
+				else
+					throw err
+			if typeof callback is \function then callback dir
 
-class Meta
+class PoemServer
 	poems: {}
 	(port) ->
 		# load up the support items needed
-		Fs.readdir "support", (err, support) ~>
-			if err
-				if err.code is 'ENOENT'
-					Builder.mkdirs 'support'
-					return
-				else
-					throw err
-
-			#for s of support
-				# Builder.symlink "support/#{s}", "public/#{s}.js"
-				# @load_poem poem, "poems/#{poem}/#{poem}.co", {watch: true}
-	
-		# load up the poems
-		Fs.readdir "poems", (err, poems) ~>
-			if err
-				if err.code is 'ENOENT'
-					Builder.mkdirs('poems')
-					return
-				else
-					throw err
-
+		Directory "support"
+		Directory "poems", (poems) ~>
 			for poem of poems
 				@load_poem poem, "poems/#{poem}/#{poem}.co", {watch: true}
 
 		#start the server
 		@server = http.createServer (req, res) ~>
 			c = new Connection req, res
-			c.start()
+			c.start!
 
 		@server.listen port, (err) ->
 			if err then throw err
-			console.log "Meta listening listening on #{port}"
+			console.log "poem listening listening on #{port}"
 
 		@everyone = nowjs.initialize @server
 		nowjs.on 'connect', ~>
@@ -191,11 +183,11 @@ class Connection
 					mime = Mime.lookup poem_name
 					@file mime, "public/#{poem_name}", (err) ~>
 						console.log "err #{err} #{typeof err}"
-						
+
 						ext = Path.extname poem_name
 						base = Path.basename poem_name, ext
 						src = ''
-						
+
 						if err is 404
 							try
 								f = Fs.readFileSync "public/#{base}.co"
@@ -298,7 +290,7 @@ class Screen
 				<script type="text/javascript" src="/nbl.js" data-nbl="['/nowjs/now.js', '/smoothie.js', ['/raphael.js', '/lib.js', function(e){LIB.init.call(this, arguments)}]]"></script>
 			</head>
 			<body>
-				<canvas id="chart" width="1100" height="500"></canvas>
+				<canvas id="chart" width="1400" height="500"></canvas>
 				<canvas id="grid" width="200" height="200"></canvas>
 			</body>
 		</html>
@@ -545,4 +537,4 @@ Poem.create = (opts, connection) ->
 			# test file
 			"""
 
-meta = new Meta 1157
+meta = new PoemServer 1157

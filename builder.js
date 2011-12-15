@@ -3,8 +3,8 @@ var Fs = require("fs"),
 	Path = require("path"),
 	exec = require('child_process').exec,
 	spawn = require('child_process').spawn,
-	sys = require('sys');
-	
+	util = require('util');
+
 
 function run() {
 	var args = Array.prototype.slice.call(arguments, 0),
@@ -19,8 +19,8 @@ function run() {
 	}
 
 	child = spawn(prog, args);
-	child.stdout.addListener("data", function (chunk) { chunk && sys.print(chunk) });
-	child.stderr.addListener("data", function (chunk) { chunk && sys.debug(chunk) });
+	child.stdout.addListener("data", function (chunk) { chunk && util.print(chunk) });
+	child.stderr.addListener("data", function (chunk) { chunk && util.debug(chunk) });
 	if(callback) {
 		child.addListener("exit", callback); // code, signal
 	}
@@ -73,7 +73,7 @@ function cp(src, dest, callback) {
 				}
 			}
 		}(callback);
-		sys.pump(Fs.createReadStream(src), Fs.createWriteStream(dest), callback);
+		util.pump(Fs.createReadStream(src), Fs.createWriteStream(dest), callback);
 	}
 }
 
@@ -120,7 +120,7 @@ function copy(src, dest, opts, callback) {
 				src = base_src+".so";
 				dest = base_dest+".so";
 			} else {
-				console.error("platform '"+platform+"' is not yet supported"); 
+				console.error("platform '"+platform+"' is not yet supported");
 			}
 	}
 
@@ -228,7 +228,7 @@ function mkdirs(dirname, mode, callback) {
 		mode = undefined;
 	}
 
-	if(mode === undefined) {
+	if(!mode) {
 		mode = 0x1ff ^ process.umask();
 	}
 
