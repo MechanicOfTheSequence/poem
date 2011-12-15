@@ -277,7 +277,7 @@ class RandomData
 	ds: []
 	iterations: 10000
 	segments: 256
-	segments_sec: 64
+	segments_sec: 16
 	(opts = {}) ->
 		#default vals (can be overridden with opts)
 		@rand = new Kybos!
@@ -359,32 +359,42 @@ class Graph
 		}
 		
 		@graph.streamTo @canvas
+		console.log opts
+		if typeof opts.callback is \function then opts.callback @
 
 class OscAvg
-	(@graph, @num = 7, @size = 2) ->
+	(@graph, @num = 3, opts = {}) ->
+		@size = opts.size || 2
 		@osc = []
-		#for i from 0 til @num
-		#	@osc.push new Osc @graph
 		@rand = new RandomData
+		@color = (if typeof opts.r is not 'undefined' then opts.r else 128+Math.round(Math.random!*255))+','+(if typeof opts.g is not 'undefined' then opts.g else 128+Math.round(Math.random!*255))+','+(if typeof opts.b is not 'undefined' then opts.b else 128+Math.round(Math.random!*255))
+		@alpha = if typeof opts.a is not 'undefined' then opts.a else 1
 		@rand.start ~>
-			#console.log "start func", @num
-			s = @rand.segments
 			for i from 0 til @num
+				s = @rand.segments
 				if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
-				#console.log "osc", i, @osc[i]
-				@osc[i].append @rand.avg(0, s)
+				if opts.even
+					@osc[i].append @rand.avg(0, s/2, 2)
+				else if opts.odd
+					@osc[i].append @rand.avg(1, s/2, 2)
+				else
+					@osc[i].append @rand.avg(0, s)
 				s /= @size
 				
-	start: (color = '255,0,0') ->
+	start: (opts = {}) ->
 		console.log "start", @num
 		for i from 0 til @num
 			if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
-			@osc[i].start { strokeStyle: "rgba(255,0,0,#{(i+1)/@num})", lineWidth: 2 }
+			@osc[i].start { strokeStyle: "rgba(#{opts.color||@color},#{(i+1)/@num*@alpha})", lineWidth: opts.width||2 }
 			#@osc[i].start { strokeStyle: "rgba(#{128+Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},1)", lineWidth: 2 }
 LIB = {
 	init: (e) ->
-		graph = new Graph canvas: $ 'chart'
-		osc = new OscAvg graph
-		console.log osc, osc.start
-		osc.start!
+		new Graph canvas: $('chart'), callback: (graph) ->
+			osc = new OscAvg graph, 3, {r: 255, g: 0, b: 0, a: 0.5}
+			osc0 = new OscAvg graph, 2, {even: true, r: 0, g: 255, b: 0, a: 0.5}
+			osc1 = new OscAvg graph, 2, {odd: true, r: 0, g: 0, b: 255, a: 0.5}
+			osc.start!
+			osc0.start width: 1
+			osc1.start width: 1
+			
 }
