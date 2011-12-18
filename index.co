@@ -37,12 +37,15 @@ Npm = require 'npm'
 Builder = require './builder'
 
 installError = (cb) ->
-	fn = (err, installed) ->
+	fn = (err, installed) ~>
 		if err
 			console.log 'npm install error ', err
 		else
 			console.log 'npm installed: ', installed
-		if typeof cb is 'function' then cb(err, installed)
+		if typeof cb is 'function'
+			setTimeout ->
+				cb(err, installed)
+			, 1000
 	fn
 
 
@@ -51,15 +54,15 @@ installError = (cb) ->
 # get git repositories (?)
 npm_config = Npm.config.get!
 Npm.load npm_config, (err) ->
-	if err then return handleErr err
-	Npm.commands.install "coco", installError!
-	Npm.commands.install "coffee-script", installError!
-	Npm.commands.install "mime", installError!
-	Npm.commands.install "now", installError!
-	Npm.commands.install "sax", installError!
-	Npm.commands.install "uglify-js", installError!
-	Npm.commands.install "cupboard", installError!
-	#console.log 'npm over and out'
+	if err then throw err
+	#Npm.commands.install "coco", installError ->
+	#	Npm.commands.install "coffee-script", installError ->
+	#		Npm.commands.install "mime", installError ->
+	#			Npm.commands.install "now", installError ->
+	#				Npm.commands.install "sax", installError ->
+	#					Npm.commands.install "uglify-js", installError ->
+	#						Npm.commands.install "cupboard", installError ->
+	#							console.log 'npm over and out'
 
 Mime = require 'mime'
 nowjs = require 'now'
@@ -310,11 +313,22 @@ class Screen
 #################################
 
 class Element
+	E: Element
 	el: 'div'
 	opts: 0
 	template: ''
-	(el, opts) ->
-		#console.log "Element", el, opts
+	toString: ->
+		ret = "<#{@el}"
+		if @opts is not 0
+			#ret += ' '
+			for id, val in @opts
+				ret += " #{id}=\"#{val.replace_all '"', '\\"'}\""
+
+		ret += if @template then ">#{@template}</#{@el}>" else '/>'
+		ret
+
+	return (el, opts) ~>
+		console.log "Element", el, opts
 		@el = el if el
 		if opts
 			@opts = opts
@@ -327,16 +341,8 @@ class Element
 
 		if c is 0
 			@opts = 0
-
-	toString: ->
-		ret = "<#{@el}"
-		if @opts is not 0
-			#ret += ' '
-			for id, val in @opts
-				ret += " #{id}=\"#{val.replace_all '"', '\\"'}\""
-
-		ret += if @template then ">#{@template}</#{@el}>" else '/>'
-		ret
+		return @
+	(...)
 
 #################################
 
@@ -486,7 +492,7 @@ class Poem extends Screen
 								scope[code_start] += v
 				s = ",#{scope.join ','}"
 				prev += s
-			else if prev.substr 0, 3 is "cE(" and prev.substr -2 is ',0'
+			else if prev.substr 0, 3 is "@E(" and prev.substr -2 is ',0'
 				prev = prev.substr 0, prev.length-2
 
 			scopes[depth][*-1] = prev + ')'

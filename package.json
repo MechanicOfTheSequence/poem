@@ -1,25 +1,26 @@
 {
-    "name": "playbox"
+    "name": "poem"
   , "version": "3.0.0"
   , "description": "abstract web programming"
-  , "homepage": "http://playbox.cc"
+  , "homepage": "http://mechanicofthesequence.github.com/poem"
   , "keywords": ["poem", "playbox"]
   , "author": "kenny <kenny@gatunes.com>"
   , "contributors": [
         { "name": "Kenny Bentley del Sofá", "email": "kenny@gatunes.com" }
       , { "name": "Kenneth 'Volcrum' Bentley", "email": "kenny@unhosted.org" }
+      , { "name": "flames of love", "email": "mechanicofthesequence@gmail.org" }
     ]
   , "repository":{
         "type": "git"
-      , "url": "https://github.com/kennyb/playbox.git"
+      , "url": "https://github.com/mechanicofthesequence/poem.git"
     }
   , "dependencies": {
-        "mime": "1.2.2"
-      , "sax": "0.2.5"
-      , "now": "0.7.4"
-      , "coffee-script": "1.1.2"
-      , "coco": "0.6.2"
-      , "uglify-js": "1.0.7"
+        "mime": "latest"
+      , "sax": "latest"
+      , "now": "latest"
+      , "coffee-script": "latest"
+      , "coco": "latest"
+      , "uglify-js": "latest"
       , "brain": "latest"
       , "npm": "latest"
     }
@@ -29,5 +30,5 @@
       , "assertvanish": "0.0.3-1"
     }
   , "main": "index"
-  , "engines": { "node": ">= 0.4.0" }
+  , "engines": { "node": ">= 0.6.0" }
 }

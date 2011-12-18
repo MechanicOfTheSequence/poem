@@ -2,9 +2,13 @@
 # a random example (not much here yet)
 
 class home extends Panel
-	template: """
-	<div>this is the home page</div>
-	"""
+	@id = 'home'
+	return (opts ={}) ->
+		@E id: 'home'
+		@
+	(@@0)
+
+
 
 class RandomExample extends Poem
 	id: \random

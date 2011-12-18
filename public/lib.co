@@ -114,7 +114,7 @@ Mixin = `function(target, source) {
 			}
 		}
 	}
-	
+
 	return target;
 }`
 
@@ -122,19 +122,19 @@ Mixin = `function(target, source) {
 class Element
 	(@el) ->
 		console.log 'element instantiated:', @el
-	
+
 	text: (text) ->
 		if typeof poem.lang is not \object
 			poem.lang = {}
 			console.warn 'your poem does not have a language defined'
-			
+
 		t = poem.lang[text]
 		if typeof t is \function then t.apply this, Array.prototype.slice.call(arguments, 2)
 		if typeof t is \undefined
 			t = "text '#{text}' is not defined"
-		
+
 		@innerHTML = t
-		
+
 class $
 	return (el) ->
 		if typeof el is 'string'
@@ -153,17 +153,17 @@ gL = `function(target, text) {
 		poem.L = {}
 		console.warn("your poem does not have a language defined");
 	}
-	
+
 	var t = poem.lang[text];
 	if(typeof t === 'function') {
 		t = t.apply(this, Array.prototype.slice.call(arguments, 2));
 	}
-	
+
 	if(typeof t === 'undefined') {
 		t = "text '"+text+"' is not defined"
 		console.warn(t);
 	}
-	
+
 	target.innerHTML = t;
 }`
 
@@ -186,7 +186,7 @@ cE = `function(type, opts) {
 	var	e = document.createElement(type),
 		len = arguments.length,
 		field, value;
-	
+
 	type = type === 1 ? "DIV" :
 		type === 2 ? "SPAN" :
 		type === 3 ? "TR" :
@@ -201,15 +201,15 @@ cE = `function(type, opts) {
 		type === 12 ? "H1" :
 		type === 13 ? "H2" :
 		type;
-	
+
 	if(opts) {
 		if(opts.hide) {
 			e.style.display = 'none';
 		}
-		
+
 		for(field in opts) {
 			value = opts[field];
-			
+
 			if(value !== '') {
 				switch(field) {
 				case 'html':
@@ -261,14 +261,14 @@ cE = `function(type, opts) {
 			}
 		}
 	}
-	
+
 	for(field = 2; field < len; field++) {
 		value = arguments[field];
 		if(typeof value !== 'undefined') {
 			aC(e, value);
 		}
 	}
-	
+
 	return e;
 }`
 
@@ -281,25 +281,25 @@ class RandomData
 	(opts = {}) ->
 		#default vals (can be overridden with opts)
 		@rand = new Kybos!
-		
+
 		#TODO: this is the faster/easier way to do this, but I would have to look at the instructions to find it, and sometimes it takes longer to look it up
 		# this reminds me as well to create a list of syntax improvements which will make my typing life easier...
 		# this also reminds me of the sequences of the future language. start by making the syntax a dictionary lookup
 		# another interesting aspect of this is the editor. knowing the forward syntax and the backward syntax, it would be
 		# possible to alert the programmer of a faster expression, teaching the programmer as she programs.
 		@ <<<< opts
-		
-		
+
+
 	start: (update) ->
 		@stop!
 		@i = setInterval ~>
 			@update!
 			if typeof update is \function then update.call arguments
 		, (1000 / @segments_sec)
-		
+
 	stop: ->
 		if @i then clearInterval @i
-	
+
 	update: ->
 		now = new Date!.getTime!
 		mean = 0
@@ -309,11 +309,11 @@ class RandomData
 		mean = ((total / @iterations * 2) - 1) * 100
 		@ds.unshift mean
 		while @ds.length > @segments then @ds.pop!
-	
+
 	avg: (start = 0, end = Infinity, skip = 1) ->
 		if !isFinite(end) then end = @ds.length
 		total = 0
-		
+
 		sample_avg = 0
 		#console.log "avg", end
 		for i from 0 til end by skip
@@ -330,14 +330,14 @@ class Osc
 		@ds = new TimeSeries!
 		@i = if isFinite(Osc.i) then ++Osc.i else Osc.i = 0
 		console.log Osc.i, @i
-	
+
 	start: (opts ={}) ->
 		console.log "osc.start", @i, @ds, opts
 		@graph.graph.addTimeSeries @ds, opts
-		
+
 	stop: ->
 		@graph.graph.removeTimeSeries @ds
-		
+
 	append: (n) ->
 		#console.log "append", @i, n
 		@ds.append new Date!.getTime!, n
@@ -345,10 +345,10 @@ class Osc
 class Graph
 	canvas: null
 	graph: null
-	
+
 	(opts = {}) ->
 		@ <<<< opts
-		
+
 		# create a canvas
 		if typeof @canvas is 'undefined' then @canvas = cE \canvas
 		@graph = new SmoothieChart {
@@ -357,7 +357,7 @@ class Graph
 			millisPerPixel: 20
 			grid: { strokeStyle: '#555555', lineWidth: 1, millisPerLine: 1000, verticalSections: 4 }
 		}
-		
+
 		@graph.streamTo @canvas
 		console.log opts
 		if typeof opts.callback is \function then opts.callback @
@@ -380,21 +380,22 @@ class OscAvg
 				else
 					@osc[i].append @rand.avg(0, s)
 				s /= @size
-				
+
 	start: (opts = {}) ->
 		console.log "start", @num
 		for i from 0 til @num
 			if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
 			@osc[i].start { strokeStyle: "rgba(#{opts.color||@color},#{(i+1)/@num*@alpha})", lineWidth: opts.width||2 }
 			#@osc[i].start { strokeStyle: "rgba(#{128+Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},1)", lineWidth: 2 }
+
 LIB = {
 	init: (e) ->
 		new Graph canvas: $('chart'), callback: (graph) ->
-			osc = new OscAvg graph, 3, {r: 255, g: 0, b: 0, a: 0.5}
-			osc0 = new OscAvg graph, 2, {even: true, r: 0, g: 255, b: 0, a: 0.5}
-			osc1 = new OscAvg graph, 2, {odd: true, r: 0, g: 0, b: 255, a: 0.5}
+			osc = new OscAvg graph, 5, {r: 255, g: 0, b: 0, a: 0.5}
+			#osc0 = new OscAvg graph, 1, {even: true, r: 255, g: 55, b: 0, a: 0.5}
+			#osc1 = new OscAvg graph, 1, {odd: true, r: 255, g: 0, b: 55, a: 0.5}
 			osc.start!
-			osc0.start width: 1
-			osc1.start width: 1
-			
+			#osc0.start width: 1
+			#osc1.start width: 1
+
 }
