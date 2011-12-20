@@ -290,10 +290,10 @@ class Screen
 		<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 			<head>
 				<title>#{@title}</title>
-				<script type="text/javascript" src="/nbl.js" data-nbl="['/nowjs/now.js', '/smoothie.js', ['/raphael.js', '/lib.js', function(e){LIB.init.call(this, arguments)}]]"></script>
+				<script type="text/javascript" src="/nbl.js" data-nbl="['/nowjs/now.js', '/smoothie.js', '/brain-0.3.5.min.js', ['/raphael.js', '/lib.js', function(e){LIB.init.call(this, arguments)}]]"></script>
 			</head>
 			<body>
-				<canvas id="chart" width="1400" height="500"></canvas>
+				<canvas id="chart" width="1240" height="500"></canvas>
 				<canvas id="grid" width="200" height="200"></canvas>
 			</body>
 		</html>

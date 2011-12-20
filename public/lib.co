@@ -275,6 +275,7 @@ cE = `function(type, opts) {
 class RandomData
 	rand: null
 	ds: []
+	callbacks: []
 	iterations: 10000
 	segments: 256
 	segments_sec: 16
@@ -291,14 +292,19 @@ class RandomData
 
 
 	start: (update) ->
-		@stop!
-		@i = setInterval ~>
+		if typeof update is \function then @callbacks.push update
+		if !@i then @i = setInterval ~>
 			@update!
-			if typeof update is \function then update.call arguments
+			for c of @callbacks
+				c.call arguments
 		, (1000 / @segments_sec)
 
 	stop: ->
-		if @i then clearInterval @i
+		if @i
+			clearInterval @i
+			@callbacks = []
+			@i = 0
+		
 
 	update: ->
 		now = new Date!.getTime!
@@ -366,19 +372,21 @@ class OscAvg
 	(@graph, @num = 3, opts = {}) ->
 		@size = opts.size || 2
 		@osc = []
-		@rand = new RandomData
+		@rand = opts.rand || new RandomData
 		@color = (if typeof opts.r is not 'undefined' then opts.r else 128+Math.round(Math.random!*255))+','+(if typeof opts.g is not 'undefined' then opts.g else 128+Math.round(Math.random!*255))+','+(if typeof opts.b is not 'undefined' then opts.b else 128+Math.round(Math.random!*255))
 		@alpha = if typeof opts.a is not 'undefined' then opts.a else 1
 		@rand.start ~>
+			s = @rand.segments
 			for i from 0 til @num
-				s = @rand.segments
+				a = 0
 				if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
 				if opts.even
-					@osc[i].append @rand.avg(0, s/2, 2)
+					a = @rand.avg(0, s/2, 2)
 				else if opts.odd
-					@osc[i].append @rand.avg(1, s/2, 2)
+					a = @rand.avg(1, s/2, 2)
 				else
-					@osc[i].append @rand.avg(0, s)
+					a = @rand.avg(0, s)
+				@osc[i].append a
 				s /= @size
 
 	start: (opts = {}) ->
@@ -386,16 +394,17 @@ class OscAvg
 		for i from 0 til @num
 			if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
 			@osc[i].start { strokeStyle: "rgba(#{opts.color||@color},#{(i+1)/@num*@alpha})", lineWidth: opts.width||2 }
-			#@osc[i].start { strokeStyle: "rgba(#{128+Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},#{Math.round(Math.random!*255)},1)", lineWidth: 2 }
 
 LIB = {
 	init: (e) ->
+		net = new brain.BayesianClassifier!
 		new Graph canvas: $('chart'), callback: (graph) ->
-			osc = new OscAvg graph, 5, {r: 255, g: 0, b: 0, a: 0.5}
-			#osc0 = new OscAvg graph, 1, {even: true, r: 255, g: 55, b: 0, a: 0.5}
-			#osc1 = new OscAvg graph, 1, {odd: true, r: 255, g: 0, b: 55, a: 0.5}
-			osc.start!
-			#osc0.start width: 1
-			#osc1.start width: 1
+			rand = new RandomData
+			osc = new OscAvg graph, 2, {rand: rand, r: 255, g: 0, b: 0, a: 1.0}
+			osc0 = new OscAvg graph, 2, {rand: rand, even: true, r: 55, g: 155, b: 0, a: 0.8}
+			osc1 = new OscAvg graph, 2, {rand: rand, odd: true, r: 55, g: 0, b: 155, a: 0.8}
+			osc.start width: 2
+			osc0.start width: 1
+			osc1.start width: 1
 
 }
