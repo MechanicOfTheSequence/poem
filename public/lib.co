@@ -314,7 +314,10 @@ class RandomData
 			total += @rand.fract53!
 		mean = ((total / @iterations * 2) - 1) * 100
 		@ds.unshift mean
-		while @ds.length > @segments then @ds.pop!
+		len = @ds.length
+		@rand.addNoise @ds.slice(0, len <? @segments_sec).join ''
+		
+		while len-- > @segments then @ds.pop!
 
 	avg: (start = 0, end = Infinity, skip = 1) ->
 		if !isFinite(end) then end = @ds.length
@@ -356,7 +359,7 @@ class Graph
 		@ <<<< opts
 
 		# create a canvas
-		if typeof @canvas is 'undefined' then @canvas = cE \canvas
+		if typeof @canvas is \undefined then @canvas = cE \canvas
 		@graph = new SmoothieChart {
 			minValue: -1
 			maxValue: 1
@@ -373,13 +376,13 @@ class OscAvg
 		@size = opts.size || 2
 		@osc = []
 		@rand = opts.rand || new RandomData
-		@color = (if typeof opts.r is not 'undefined' then opts.r else 128+Math.round(Math.random!*255))+','+(if typeof opts.g is not 'undefined' then opts.g else 128+Math.round(Math.random!*255))+','+(if typeof opts.b is not 'undefined' then opts.b else 128+Math.round(Math.random!*255))
-		@alpha = if typeof opts.a is not 'undefined' then opts.a else 1
+		@color = (if typeof opts.r is not \undefined then opts.r else 128+Math.round(Math.random!*255))+','+(if typeof opts.g is not \undefined then opts.g else 128+Math.round(Math.random!*255))+','+(if typeof opts.b is not \undefined then opts.b else 128+Math.round(Math.random!*255))
+		@alpha = if typeof opts.a is not \undefined then opts.a else 1
 		@rand.start ~>
 			s = @rand.segments
 			for i from 0 til @num
 				a = 0
-				if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
+				if typeof @osc[i] is not \object then @osc[i] = new Osc @graph
 				if opts.even
 					a = @rand.avg(0, s/2, 2)
 				else if opts.odd
@@ -392,7 +395,7 @@ class OscAvg
 	start: (opts = {}) ->
 		console.log "start", @num
 		for i from 0 til @num
-			if typeof @osc[i] is not 'object' then @osc[i] = new Osc @graph
+			if typeof @osc[i] is not \object then @osc[i] = new Osc @graph
 			@osc[i].start { strokeStyle: "rgba(#{opts.color||@color},#{(i+1)/@num*@alpha})", lineWidth: opts.width||2 }
 
 LIB = {
@@ -400,11 +403,14 @@ LIB = {
 		net = new brain.BayesianClassifier!
 		new Graph canvas: $('chart'), callback: (graph) ->
 			rand = new RandomData
-			osc = new OscAvg graph, 2, {rand: rand, r: 255, g: 0, b: 0, a: 1.0}
-			osc0 = new OscAvg graph, 2, {rand: rand, even: true, r: 55, g: 155, b: 0, a: 0.8}
-			osc1 = new OscAvg graph, 2, {rand: rand, odd: true, r: 55, g: 0, b: 155, a: 0.8}
+			rand.start ->
+				# only do this when the training is turned on
+				#net.train [{input: [] output: []}]
+			osc = new OscAvg graph, 5, {rand: rand, r: 255, g: 0, b: 0, a: 1.0}
+			#osc0 = new OscAvg graph, 2, {rand: rand, even: true, r: 55, g: 155, b: 0, a: 0.8}
+			#osc1 = new OscAvg graph, 2, {rand: rand, odd: true, r: 55, g: 0, b: 155, a: 0.8}
 			osc.start width: 2
-			osc0.start width: 1
-			osc1.start width: 1
+			#osc0.start width: 1
+			#osc1.start width: 1
 
 }

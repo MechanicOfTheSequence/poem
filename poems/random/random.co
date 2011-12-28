@@ -2,9 +2,9 @@
 # a random example (not much here yet)
 
 class home extends Panel
-	@id = 'home'
+	@id = \home
 	return (opts ={}) ->
-		@E id: 'home'
+		@E id: \home
 		@
 	(@@0)
 
